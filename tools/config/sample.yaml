@@ -1,0 +1,18 @@
+exp:
+  name: sample
+  verbose: true
+
+test:
+  datasets:
+    - sou
+    - colon/tok
+
+train:
+  epochs:
+    limit: 50
+    warmup: 10
+    stop_patience: 10
+
+checkpoint:
+  best_model: best_model.pt
+  capacity: 5

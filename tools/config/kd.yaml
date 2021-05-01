@@ -1,0 +1,9 @@
+exp:
+  name: kd
+
+train:
+  kd:
+    temperature: 5
+    lamda: 0.5
+    teachers:
+      - outputs/gan/best_model.pt

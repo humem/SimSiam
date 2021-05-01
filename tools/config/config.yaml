@@ -1,0 +1,44 @@
+exp:
+  name: config
+  description: サンプルプログラム 初版+
+  seed: 42
+  verbose: true
+
+model:
+  name: Unet
+  encoder:
+    name: resnet50
+    weights: imagenet
+
+dataset:
+  name: endoscopy
+  dir: datasets/sou
+  image_size: 224
+  augment:
+    name: endoscopy
+  normalize:
+    name: imagenet
+
+dataloader:
+  batch_size: 48
+  num_workers: 8
+
+train:
+  optimizer:
+    name: SGD
+    momentum: 0.9
+  epochs:
+    limit: 50
+    warmup: 5
+    stop_patience: 10
+  lr_scheduler:
+    name: cosine
+    base_lr: 1.0e-3
+    num_epochs: 100
+  monitor:
+    name: knn
+    interval: 1
+    k: 200
+  logger:
+    tensorboard: true
+    matplotlib: true
