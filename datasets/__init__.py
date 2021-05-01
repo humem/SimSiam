@@ -16,6 +16,8 @@ def get_dataset(dataset, data_dir, transform, train=True, download=False, debug_
         dataset = torchvision.datasets.ImageNet(data_dir, split='train' if train == True else 'val', transform=transform, download=download)
     elif dataset == 'random':
         dataset = RandomDataset()
+    elif dataset == 'colon':
+        dataset = ColonDataset(data_dir, split='train' if train else 'val', transform=transform)
     else:
         raise NotImplementedError
 

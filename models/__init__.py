@@ -1,7 +1,7 @@
 from .simsiam import SimSiam
 from .byol import BYOL
 from .simclr import SimCLR
-from torchvision.models import resnet50, resnet18
+from torchvision.models import resnet50, resnet34, resnet18
 import torch
 from .backbones import resnet18_cifar_variant1, resnet18_cifar_variant2
 

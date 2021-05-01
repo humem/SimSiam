@@ -66,30 +66,33 @@ def main(device, args):
     logger = Logger(tensorboard=args.logger.tensorboard, matplotlib=args.logger.matplotlib, log_dir=args.log_dir)
     accuracy = 0 
     # Start training
-    global_progress = tqdm(range(0, args.train.stop_at_epoch), desc=f'Training')
-    for epoch in global_progress:
-        model.train()
-        
-        local_progress=tqdm(train_loader, desc=f'Epoch {epoch}/{args.train.num_epochs}', disable=args.hide_progress)
-        for idx, ((images1, images2), labels) in enumerate(local_progress):
+    try:
+        global_progress = tqdm(range(0, args.train.stop_at_epoch), desc=f'Training')
+        for epoch in global_progress:
+            model.train()
 
-            model.zero_grad()
-            data_dict = model.forward(images1.to(device, non_blocking=True), images2.to(device, non_blocking=True))
-            loss = data_dict['loss'].mean() # ddp
-            loss.backward()
-            optimizer.step()
-            lr_scheduler.step()
-            data_dict.update({'lr':lr_scheduler.get_lr()})
-            
-            local_progress.set_postfix(data_dict)
-            logger.update_scalers(data_dict)
+            local_progress=tqdm(train_loader, desc=f'Epoch {epoch}/{args.train.num_epochs}', disable=args.hide_progress)
+            for idx, ((images1, images2), labels) in enumerate(local_progress):
 
-        if args.train.knn_monitor and epoch % args.train.knn_interval == 0: 
-            accuracy = knn_monitor(model.module.backbone, memory_loader, test_loader, device, k=min(args.train.knn_k, len(memory_loader.dataset)), hide_progress=args.hide_progress) 
-        
-        epoch_dict = {"epoch":epoch, "accuracy":accuracy}
-        global_progress.set_postfix(epoch_dict)
-        logger.update_scalers(epoch_dict)
+                model.zero_grad()
+                data_dict = model.forward(images1.to(device, non_blocking=True), images2.to(device, non_blocking=True))
+                loss = data_dict['loss'].mean() # ddp
+                loss.backward()
+                optimizer.step()
+                lr_scheduler.step()
+                data_dict.update({'lr':lr_scheduler.get_lr()})
+
+                local_progress.set_postfix(data_dict)
+                logger.update_scalers(data_dict)
+
+            if args.train.knn_monitor and epoch % args.train.knn_interval == 0: 
+                accuracy = knn_monitor(model.module.backbone, memory_loader, test_loader, device, k=min(args.train.knn_k, len(memory_loader.dataset)), hide_progress=args.hide_progress) 
+
+            epoch_dict = {"epoch":epoch, "accuracy":accuracy}
+            global_progress.set_postfix(epoch_dict)
+            logger.update_scalers(epoch_dict)
+    except KeyboardInterrupt:
+        print('Interrupted. Skip training.')
     
     # Save checkpoint
     model_path = os.path.join(args.ckpt_dir, f"{args.name}_{datetime.now().strftime('%m%d%H%M%S')}.pth") # datetime.now().strftime('%Y%m%d_%H%M%S')
